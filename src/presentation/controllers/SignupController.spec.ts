@@ -35,4 +35,38 @@ describe('Signup Controller', () => {
     expect(response.statusCode).toBe(400)
     expect(response.body).toEqual(new Error('Missing param: email'))
   })
+
+  test('Should return 400 if no password is provided', async () => {
+    const sut = new SignupController()
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        passwordConfirmatiom: password
+      }
+    }
+
+    const response = await sut.handle(httpRequest)
+    expect(response.statusCode).toBe(400)
+    expect(response.body).toEqual(new Error('Missing param: password'))
+  })
+
+  test('Should return 400 if no passwordConfirmation is provided', async () => {
+    const sut = new SignupController()
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        password
+      }
+    }
+
+    const response = await sut.handle(httpRequest)
+    expect(response.statusCode).toBe(400)
+    expect(response.body).toEqual(new Error('Missing param: passwordConfirmation'))
+  })
 })
