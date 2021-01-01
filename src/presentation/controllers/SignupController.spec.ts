@@ -31,7 +31,7 @@ describe('Signup Controller', () => {
       body: {
         email: faker.internet.email(),
         password,
-        passwordConfirmatiom: password
+        passwordConfirmation: password
       }
     }
 
@@ -48,7 +48,7 @@ describe('Signup Controller', () => {
       body: {
         name: faker.name.firstName(),
         password,
-        passwordConfirmatiom: password
+        passwordConfirmation: password
       }
     }
 
@@ -65,7 +65,7 @@ describe('Signup Controller', () => {
       body: {
         name: faker.name.firstName(),
         email: faker.internet.email(),
-        passwordConfirmatiom: password
+        passwordConfirmation: password
       }
     }
 
@@ -89,5 +89,28 @@ describe('Signup Controller', () => {
     const response = await sut.handle(httpRequest)
     expect(response.statusCode).toBe(400)
     expect(response.body).toEqual(new Error('Missing param: passwordConfirmation'))
+  })
+
+  test('Should return 400 if invalid email is provided', async () => {
+    const { sut, emailValidator } = makeSut()
+
+    const mockEmailValidator = jest.spyOn(emailValidator, 'validate').mockResolvedValue(false)
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        password,
+        passwordConfirmation: password
+      }
+    }
+
+    const response = await sut.handle(httpRequest)
+
+    expect(mockEmailValidator).toBeCalled()
+
+    expect(response.statusCode).toBe(400)
+    expect(response.body).toEqual(new Error('Invalid param: email'))
   })
 })
