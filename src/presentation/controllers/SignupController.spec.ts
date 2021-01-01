@@ -1,6 +1,6 @@
 import { SignupController } from './SignupController'
 import faker from 'faker'
-import Validator from '../protocols/validator'
+import { Validator } from '../protocols'
 import { ServerError, MissingParamError, InvalidParamError } from '../errors'
 interface SutTypes {
   sut: SignupController
