@@ -1,8 +1,7 @@
 import { SignupController } from './SignupController'
 import faker from 'faker'
 import Validator from '../protocols/validator'
-import ServerError from '../errors/server-error'
-
+import { ServerError, MissingParamError, InvalidParamError } from '../errors'
 interface SutTypes {
   sut: SignupController
   emailValidator: Validator<string>
@@ -38,7 +37,7 @@ describe('Signup Controller', () => {
 
     const response = await sut.handle(httpRequest)
     expect(response.statusCode).toBe(400)
-    expect(response.body).toEqual(new Error('Missing param: name'))
+    expect(response.body).toEqual(new MissingParamError('name'))
   })
 
   test('Should return 400 if no email is provided', async () => {
@@ -55,7 +54,7 @@ describe('Signup Controller', () => {
 
     const response = await sut.handle(httpRequest)
     expect(response.statusCode).toBe(400)
-    expect(response.body).toEqual(new Error('Missing param: email'))
+    expect(response.body).toEqual(new MissingParamError('email'))
   })
 
   test('Should return 400 if no password is provided', async () => {
@@ -72,7 +71,7 @@ describe('Signup Controller', () => {
 
     const response = await sut.handle(httpRequest)
     expect(response.statusCode).toBe(400)
-    expect(response.body).toEqual(new Error('Missing param: password'))
+    expect(response.body).toEqual(new MissingParamError('password'))
   })
 
   test('Should return 400 if no passwordConfirmation is provided', async () => {
@@ -89,7 +88,7 @@ describe('Signup Controller', () => {
 
     const response = await sut.handle(httpRequest)
     expect(response.statusCode).toBe(400)
-    expect(response.body).toEqual(new Error('Missing param: passwordConfirmation'))
+    expect(response.body).toEqual(new MissingParamError('passwordConfirmation'))
   })
 
   test('Should return 400 if invalid email is provided', async () => {
@@ -112,7 +111,7 @@ describe('Signup Controller', () => {
     expect(mockEmailValidator).toBeCalled()
 
     expect(response.statusCode).toBe(400)
-    expect(response.body).toEqual(new Error('Invalid param: email'))
+    expect(response.body).toEqual(new InvalidParamError('email'))
   })
 
   test('Should return 500 if emailValidator throws', async () => {
