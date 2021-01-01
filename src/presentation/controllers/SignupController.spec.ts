@@ -1,6 +1,7 @@
 import { SignupController } from './SignupController'
 import faker from 'faker'
 import Validator from '../protocols/validator'
+import ServerError from '../errors/server-error'
 
 interface SutTypes {
   sut: SignupController
@@ -112,5 +113,48 @@ describe('Signup Controller', () => {
 
     expect(response.statusCode).toBe(400)
     expect(response.body).toEqual(new Error('Invalid param: email'))
+  })
+
+  test('Should return 500 if emailValidator throws', async () => {
+    const { sut, emailValidator } = makeSut()
+
+    const mockEmailValidator = jest.spyOn(emailValidator, 'validate').mockRejectedValue(new Error('Error'))
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        password,
+        passwordConfirmation: password
+      }
+    }
+
+    const response = await sut.handle(httpRequest)
+
+    expect(mockEmailValidator).toBeCalled()
+
+    expect(response.statusCode).toBe(500)
+    expect(response.body).toEqual(new ServerError('Error'))
+  })
+
+  test('Should call emailValidator with correct email', async () => {
+    const { sut, emailValidator } = makeSut()
+
+    const mockEmailValidator = jest.spyOn(emailValidator, 'validate')
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        password,
+        passwordConfirmation: password
+      }
+    }
+
+    await sut.handle(httpRequest)
+
+    expect(mockEmailValidator).toBeCalled()
   })
 })
