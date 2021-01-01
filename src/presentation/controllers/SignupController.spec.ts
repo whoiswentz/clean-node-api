@@ -1,9 +1,30 @@
 import { SignupController } from './SignupController'
 import faker from 'faker'
+import Validator from '../protocols/validator'
+
+interface SutTypes {
+  sut: SignupController
+  emailValidator: Validator<string>
+}
+
+const makeSut = (): SutTypes => {
+  class EmailValidator implements Validator<string> {
+    public async validate (email: string): Promise<Boolean> {
+      return true
+    }
+  }
+
+  const emailValidator = new EmailValidator()
+  const sut = new SignupController(emailValidator)
+  return {
+    sut,
+    emailValidator
+  }
+}
 
 describe('Signup Controller', () => {
   test('Should return 400 if no name is provided', async () => {
-    const sut = new SignupController()
+    const { sut } = makeSut()
 
     const password = faker.internet.password()
     const httpRequest = {
@@ -20,7 +41,7 @@ describe('Signup Controller', () => {
   })
 
   test('Should return 400 if no email is provided', async () => {
-    const sut = new SignupController()
+    const { sut } = makeSut()
 
     const password = faker.internet.password()
     const httpRequest = {
@@ -37,7 +58,7 @@ describe('Signup Controller', () => {
   })
 
   test('Should return 400 if no password is provided', async () => {
-    const sut = new SignupController()
+    const { sut } = makeSut()
 
     const password = faker.internet.password()
     const httpRequest = {
@@ -54,7 +75,7 @@ describe('Signup Controller', () => {
   })
 
   test('Should return 400 if no passwordConfirmation is provided', async () => {
-    const sut = new SignupController()
+    const { sut } = makeSut()
 
     const password = faker.internet.password()
     const httpRequest = {
