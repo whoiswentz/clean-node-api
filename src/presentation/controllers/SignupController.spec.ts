@@ -20,7 +20,7 @@ const makeSut = (): SutTypes => {
   class AddAccountStub implements AddAccount {
     public async add (account: AddAccountModel): Promise<AccountModel> {
       return {
-        id: faker.random.uuid(),
+        id: 'id',
         name: account.name,
         email: account.email,
         password: account.password
@@ -235,5 +235,39 @@ describe('Signup Controller', () => {
 
     expect(response.statusCode).toBe(500)
     expect(response.body).toEqual(new ServerError('Error'))
+  })
+
+  test('Should return 200 with valid data is provided', async () => {
+    const { sut, emailValidator, addAccountStub } = makeSut()
+
+    const mockEmailValidator = jest.spyOn(emailValidator, 'validate')
+    const mockAddAccount = jest.spyOn(addAccountStub, 'add')
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        password,
+        passwordConfirmation: password
+      }
+    }
+
+    const response = await sut.handle(httpRequest)
+
+    expect(mockEmailValidator).toBeCalledWith(httpRequest.body.email)
+    expect(mockAddAccount).toHaveBeenCalledWith({
+      name: httpRequest.body.name,
+      email: httpRequest.body.email,
+      password: httpRequest.body.password
+    })
+
+    expect(response.statusCode).toBe(200)
+    expect(response.body).toEqual({
+      id: 'id',
+      name: httpRequest.body.name,
+      email: httpRequest.body.email,
+      password: httpRequest.body.password
+    })
   })
 })
