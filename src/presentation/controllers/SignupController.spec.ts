@@ -2,9 +2,12 @@ import { SignupController } from './SignupController'
 import faker from 'faker'
 import { Validator } from '../protocols'
 import { ServerError, MissingParamError, InvalidParamError } from '../errors'
+import { AddAccount, AddAccountModel } from '../../domain/usecases/add-account'
+import { AccountModel } from '../../domain/models/add-account'
 interface SutTypes {
   sut: SignupController
   emailValidator: Validator<string>
+  addAccountStub: AddAccount
 }
 
 const makeSut = (): SutTypes => {
@@ -14,11 +17,24 @@ const makeSut = (): SutTypes => {
     }
   }
 
+  class AddAccountStub implements AddAccount {
+    public async add (account: AddAccountModel): Promise<AccountModel> {
+      return {
+        id: faker.random.uuid(),
+        name: account.name,
+        email: account.email,
+        password: account.password
+      }
+    }
+  }
+
   const emailValidator = new EmailValidator()
-  const sut = new SignupController(emailValidator)
+  const addAccountStub = new AddAccountStub()
+  const sut = new SignupController(emailValidator, addAccountStub)
   return {
     sut,
-    emailValidator
+    emailValidator,
+    addAccountStub
   }
 }
 
@@ -172,5 +188,29 @@ describe('Signup Controller', () => {
     await sut.handle(httpRequest)
 
     expect(mockEmailValidator).toBeCalled()
+  })
+
+  test('Should call AddAccountUsecase with correct params', async () => {
+    const { sut, addAccountStub } = makeSut()
+
+    const mockAddAccount = jest.spyOn(addAccountStub, 'add')
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        password,
+        passwordConfirmation: password
+      }
+    }
+
+    await sut.handle(httpRequest)
+
+    expect(mockAddAccount).toHaveBeenCalledWith({
+      name: httpRequest.body.name,
+      email: httpRequest.body.email,
+      password: httpRequest.body.password
+    })
   })
 })
