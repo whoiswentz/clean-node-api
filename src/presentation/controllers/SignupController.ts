@@ -1,6 +1,7 @@
 import { AddAccount } from '../../domain/usecases/add-account'
 import { ServerError, InvalidParamError, MissingParamError } from '../errors'
 import { badRequest, internalServerError } from '../helpers/http'
+import { ok } from '../helpers/http/ok'
 import { HttpRequest, HttpResponse, Validator, Controller } from '../protocols'
 
 export class SignupController implements Controller<HttpRequest, HttpResponse<any>> {
@@ -30,10 +31,7 @@ export class SignupController implements Controller<HttpRequest, HttpResponse<an
 
       const account = await this.addAccountUsecase.add({ name, email, password })
 
-      return {
-        statusCode: 200,
-        body: account
-      }
+      return ok(account)
     } catch (error) {
       return internalServerError(new ServerError(error.message))
     }
