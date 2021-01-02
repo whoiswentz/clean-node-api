@@ -31,8 +31,8 @@ export class SignupController implements Controller<HttpRequest, HttpResponse<an
       const account = await this.addAccountUsecase.add({ name, email, password })
 
       return {
-        statusCode: 500,
-        body: new Error('Internal')
+        statusCode: 200,
+        body: account
       }
     } catch (error) {
       return internalServerError(new ServerError(error.message))
