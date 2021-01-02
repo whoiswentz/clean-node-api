@@ -213,4 +213,27 @@ describe('Signup Controller', () => {
       password: httpRequest.body.password
     })
   })
+
+  test('Should return 500 if emailValidator throws', async () => {
+    const { sut, addAccountStub } = makeSut()
+
+    const mockEmailValidator = jest.spyOn(addAccountStub, 'add').mockRejectedValue(new Error('Error'))
+
+    const password = faker.internet.password()
+    const httpRequest = {
+      body: {
+        name: faker.name.firstName(),
+        email: faker.internet.email(),
+        password,
+        passwordConfirmation: password
+      }
+    }
+
+    const response = await sut.handle(httpRequest)
+
+    expect(mockEmailValidator).toBeCalled()
+
+    expect(response.statusCode).toBe(500)
+    expect(response.body).toEqual(new ServerError('Error'))
+  })
 })
