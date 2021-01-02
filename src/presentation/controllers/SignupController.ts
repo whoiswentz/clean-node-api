@@ -1,10 +1,12 @@
+import { AddAccount } from '../../domain/usecases/add-account'
 import { ServerError, InvalidParamError, MissingParamError } from '../errors'
 import { badRequest, internalServerError } from '../helpers/http'
 import { HttpRequest, HttpResponse, Validator, Controller } from '../protocols'
 
 export class SignupController implements Controller<HttpRequest, HttpResponse<any>> {
   constructor (
-    private readonly emailValidator: Validator<string>
+    private readonly emailValidator: Validator<string>,
+    private readonly addAccountUsecase: AddAccount
   ) {}
 
   public async handle (httpRequest: HttpRequest): Promise<HttpResponse<any>> {
@@ -16,7 +18,7 @@ export class SignupController implements Controller<HttpRequest, HttpResponse<an
         }
       }
 
-      const { email, password, passwordConfirmation } = httpRequest.body
+      const { name, email, password, passwordConfirmation } = httpRequest.body
       if (password !== passwordConfirmation) {
         return badRequest(new InvalidParamError('passwordConfirmation'))
       }
@@ -25,6 +27,8 @@ export class SignupController implements Controller<HttpRequest, HttpResponse<an
       if (!isEmailValid) {
         return badRequest(new InvalidParamError('email'))
       }
+
+      const account = await this.addAccountUsecase.add({ name, email, password })
 
       return {
         statusCode: 500,
