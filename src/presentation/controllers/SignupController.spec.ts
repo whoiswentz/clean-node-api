@@ -3,7 +3,7 @@ import faker from 'faker'
 import { Validator } from '../protocols'
 import { ServerError, MissingParamError, InvalidParamError } from '../errors'
 import { AddAccount, AddAccountModel } from '../../domain/usecases/add-account'
-import { AccountModel } from '../../domain/models/add-account'
+import { AccountModel } from '../../domain/models/account'
 interface SutTypes {
   sut: SignupController
   emailValidator: Validator<string>
