@@ -1,38 +1,28 @@
 import { AddAccount } from '../../../domain/usecases/add-account'
 import { ServerError, InvalidParamError, MissingParamError } from '../../errors'
-import { badRequest, internalServerError } from '../../helpers/http'
-import { ok } from '../../helpers/http/ok'
+import { badRequest, internalServerError, ok } from '../../helpers/http'
 import { HttpRequest, HttpResponse, Validator, Controller } from '../../protocols'
+import { SignupModel } from '../../../domain/models/signupmodel'
 
-export class SignupController implements Controller<HttpRequest, HttpResponse<any>> {
+export class SignupController implements Controller<HttpRequest<SignupModel>, HttpResponse<any>> {
   constructor (
-    private readonly emailValidator: Validator<string>,
-    private readonly addAccountUsecase: AddAccount
+    private readonly signupBodyValidator: Validator<SignupModel>,
+    private readonly addAccountUseCase: AddAccount
   ) {}
 
-  public async handle (httpRequest: HttpRequest): Promise<HttpResponse<any>> {
+  public async handle (httpRequest: HttpRequest<SignupModel>): Promise<HttpResponse<any>> {
     try {
-      const requiredFields = ['name', 'email', 'password', 'passwordConfirmation']
-      for (const field of requiredFields) {
-        if (!httpRequest.body[field]) {
-          return badRequest(new MissingParamError(field))
-        }
-      }
-
-      const { name, email, password, passwordConfirmation } = httpRequest.body
-      if (password !== passwordConfirmation) {
-        return badRequest(new InvalidParamError('passwordConfirmation'))
-      }
-
-      const isEmailValid = await this.emailValidator.validate(email)
-      if (!isEmailValid) {
-        return badRequest(new InvalidParamError('email'))
-      }
-
-      const account = await this.addAccountUsecase.add({ name, email, password })
+      const { name, email, password } = await this.signupBodyValidator.validate(httpRequest.body)
+      const account = await this.addAccountUseCase.add({ name, email, password })
 
       return ok(account)
     } catch (error) {
+      if (error instanceof MissingParamError) {
+        return badRequest(error)
+      }
+      if (error instanceof InvalidParamError) {
+        return badRequest(error)
+      }
       return internalServerError(new ServerError(error.message))
     }
   }
